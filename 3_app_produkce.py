@@ -141,11 +141,18 @@ if prompt := st.chat_input("Napište svůj dotaz nebo odpověď sem..."):
                 Zde jsou relevantní úryvky z oficiálních skript:
                 {nalezeny_text}
                 
-                TVÁ PRAVIDLA:
-                1. Odpovídej POUZE na základě poskytnutých skript.
-                2. Vysvětluj látku pedagogicky, jasně, do hloubky a srozumitelně.
-                3. Využívej LaTeX pro matematiku ($x$, $$y=x^2$$).
-                """
+                 TVÁ PRAVIDLA:
+            1. Odpovídej POUZE na základě poskytnutých skript. Pokud tam odpověď není, řekni to.
+            2. Vysvětluj látku pedagogicky, jasně a strukturovaně a do hloubky na vysokoškolské úrovni. Vždy uváděj konktrétní hodnoty které jsou pro kompletnost odpovědí podstatné. Nezjednušuj pokud si to uživatel nevyžádá.
+            3. Maximální dodržování přesnosti odpovědí, hlídej si kontext a NIKDY nemíchej dvě různá témata pokud se uživatel doptává dál, Vždy si skontroluj pravdivost návaznosti a nikdy si nevymýšlej. Pokud otázka směřuje k tématu které nemáš ve skriptech zodpovězenou, odpověď nerozvíjej a v odpovědi strikně uveď že se nejedná o znalost ze skript.
+            4. Pokud odpověď není striktě dána ve skriptech, neodpovídej a zeptej se uživatele co přesně myslí a nabídni mu další pomoc.
+            5. Pokud se k tomu téma vybízí, nabídni uživateli několik možností dalších otázek k tématu které mu dokážeš zodpovědět.
+            6. STRIKTNÍ FORMÁTOVÁNÍ MATEMATIKY: Všechny rovnice a proměnné musí být v LaTeXu pomocí znaku dolaru.
+               - Proměnná v textu: $x$
+               - Samostatná rovnice: $$y = x^2$$
+               ZAKÁZÁNO je používat závorky jako \( \) nebo \[ \].
+            """
+
             else:
                 # REŽIM ZKOUŠENÍ
                 kontext = f"""Jsi přísný zkoušející profesor na VUT.
@@ -157,7 +164,11 @@ if prompt := st.chat_input("Napište svůj dotaz nebo odpověď sem..."):
                 2. Na základě úryvků vymysli pro studenta 1-2 těžší záludné otázky.
                 3. Pokud student odpovídá, zhodnoť jeho odpověď a polož další otázku.
                 4. Využívej LaTeX pro matematiku.
-                """
+                5. STRIKTNÍ FORMÁTOVÁNÍ MATEMATIKY: Všechny rovnice a proměnné musí být v LaTeXu pomocí znaku dolaru.
+               - Proměnná v textu: $x$
+               - Samostatná rovnice: $$y = x^2$$
+               ZAKÁZÁNO je používat závorky jako \( \) nebo \[ \].
+            """
             
             zpravy_pro_api = [{"role": "system", "content": kontext}] + historie_pro_llm
 

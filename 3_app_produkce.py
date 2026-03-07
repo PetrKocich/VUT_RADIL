@@ -126,22 +126,26 @@ if prompt := st.chat_input("Napište svůj dotaz nebo odpověď sem..."):
     with st.chat_message("assistant"):
         if vysledky:
             nalezeny_text = ""
+            zdroje_info = [] # <-- PŘIDÁNO: Vytvoříme si seznam na ukládání zdrojů
             
             for v in vysledky:
                 payload = v.payload
                 predmet = payload['metadata'].get('Predmet', 'Neznámý')
                 nalezeny_text += f"[{predmet}]: {payload['text']}\n\n"
+                
+                # <-- PŘIDÁNO: Uložíme si informace o nalezeném zdroji
+                zdroje_info.append(f"**Předmět {predmet}**: {payload.get('metadata', '')}")
 
             # Historie pro API (posledních 5 zpráv)
             historie_pro_llm = st.session_state.chats[st.session_state.current_chat][-5:] 
             
             # --- DYNAMICKÝ PROMPT ---
             if rezim == "📖 Vysvětlování látky":
-                kontext = f"""Jsi expertní AI tutor pro studenty VUT.
+                kontext = f"""Jsi expertní AI tutor pro studenty elektroenergetiky VUT FEKT. Jsi praktickou částí bakalářské práce autora Petr Kocich pod vedením Doktora Paara na téma Chatbot pro výuku elektroenergetiky. Ty jsi ten chatbot a máš za úkol pouze pomáhat stuentům při studiu. Funguješ na principu databáze RAG pod LLM od francouzské firmy Mistral. Dosahuješ tak optimálního poměru cena výkon a ochrany více než 2000 stránek univerzitních skript
                 Zde jsou relevantní úryvky z oficiálních skript:
                 {nalezeny_text}
                 
-                 TVÁ PRAVIDLA:
+                TVÁ PRAVIDLA:
             1. Odpovídej POUZE na základě poskytnutých skript. Pokud tam odpověď není, řekni to.
             2. Vysvětluj látku pedagogicky, jasně a strukturovaně a do hloubky na vysokoškolské úrovni. Vždy uváděj konktrétní hodnoty které jsou pro kompletnost odpovědí podstatné. Nezjednušuj pokud si to uživatel nevyžádá.
             3. Maximální dodržování přesnosti odpovědí, hlídej si kontext a NIKDY nemíchej dvě různá témata pokud se uživatel doptává dál, Vždy si skontroluj pravdivost návaznosti a nikdy si nevymýšlej. Pokud otázka směřuje k tématu které nemáš ve skriptech zodpovězenou, odpověď nerozvíjej a v odpovědi strikně uveď že se nejedná o znalost ze skript.
@@ -151,6 +155,7 @@ if prompt := st.chat_input("Napište svůj dotaz nebo odpověď sem..."):
                - Proměnná v textu: $x$
                - Samostatná rovnice: $$y = x^2$$
                ZAKÁZÁNO je používat závorky jako \( \) nebo \[ \].
+            7. Při dotazu na aktuální verzi uveď 1.0 
             """
 
             else:
@@ -172,9 +177,6 @@ if prompt := st.chat_input("Napište svůj dotaz nebo odpověď sem..."):
             
             zpravy_pro_api = [{"role": "system", "content": kontext}] + historie_pro_llm
 
-            # --- VYLEPŠENÍ ČÍSLO 1: STREAMING (Postupné vypisování) ---
-            # Použijeme client.chat.stream místo client.chat.complete
-            # --- VYLEPŠENÍ ČÍSLO 1: STREAMING (Postupné vypisování) ---
             with st.spinner("Formuluji odpověď..."):
                 stream_response = client.chat.stream(
                     model="mistral-small-latest",
@@ -182,21 +184,27 @@ if prompt := st.chat_input("Napište svůj dotaz nebo odpověď sem..."):
                     temperature=0.0 if rezim == "📖 Vysvětlování látky" else 0.4
                 )
                 
-                # Vytvoříme bezpečnější filtr, který si poradí i s nestandardními balíčky z Mistralu
                 def vyfiltruj_text():
                     for chunk in stream_response:
                         obsah = chunk.data.choices[0].delta.content
-                        # Zkontrolujeme, že obsah opravdu existuje a je to text
                         if obsah and isinstance(obsah, str):
                             yield obsah
                 
                 kompletni_odpoved = st.write_stream(vyfiltruj_text())
                 
-                # ABSOLUTNÍ POJISTKA PROTI CHYBĚ 400: Kdyby byl text i tak prázdný
                 if not kompletni_odpoved:
                     kompletni_odpoved = "Omlouvám se, při generování textu došlo k drobné technické chybě."
             
             # Jakmile se dotextuje, uložíme to bezpečně do historie
             st.session_state.chats[st.session_state.current_chat].append({"role": "assistant", "content": kompletni_odpoved})
             
-            # POZOR: Příkaz st.rerun() odsud zmizel! Právě on způsoboval to smazání obrazovky.
+            # <-- PŘIDÁNO: Vykreslení rozbalovacího okna se zdroji
+            with st.expander("📚 Zobrazit podklady pro tuto odpověď"):
+                # Použijeme list(set(...)) pro smazání duplicit (kdyby našel 3 úryvky ze stejného PDF)
+                for zdroj in list(set(zdroje_info)):
+                    st.write(zdroj)
+
+        else:
+            odpoved = "Omlouvám se, ale k tomuto tématu jsem v žádných skriptech nenašel informace."
+            st.markdown(odpoved)
+            st.session_state.chats[st.session_state.current_chat].append({"role": "assistant", "content": odpoved})

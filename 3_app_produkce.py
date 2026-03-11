@@ -13,11 +13,11 @@ def nacti_databazi():
 
 qdrant = nacti_databazi()
 
-st.set_page_config(page_title="VUT Tutor", page_icon="🎓", layout="wide") 
+st.set_page_config(page_title="VUT Tutor - RADIL 1", page_icon="🎓", layout="wide") 
 
 # --- INICIALIZACE PAMĚTI PRO VÍCE CHATŮ ---
 if "chats" not in st.session_state:
-    st.session_state.chats = {"Konverzace 1": [{"role": "assistant", "content": "Dobrý den! Jsem váš AI tutor. S čím začneme?"}]}
+    st.session_state.chats = {"Konverzace 1": [{"role": "assistant", "content": "Dobrý den! Jsem RADIL 1. S čím začneme?"}]}
 if "current_chat" not in st.session_state:
     st.session_state.current_chat = "Konverzace 1"
 
@@ -42,7 +42,7 @@ with st.sidebar:
     rezim = st.radio(
         "Vyberte režim práce:",
         ["📖 Vysvětlování látky", "📝 Zkoušení znalostí"],
-        help="V režimu vysvětlování vám Tutor pomůže látku pochopit. V režimu zkoušení vám bude klást kontrolní otázky."
+        help="V režimu vysvětlování vám RADIL 1 pomůže látku pochopit. V režimu zkoušení vám bude klást kontrolní otázky."
     )
     
     st.divider()
@@ -81,13 +81,33 @@ with st.sidebar:
         use_container_width=True,
         help="Uloží aktuální chat jako čistý textový soubor. Ideální pro výpisky."
     )
+        # --- NOVINKA 1: TLAČÍTKO PRO ZPĚTNOU VAZBU ---
+    st.divider()
+    st.markdown("### 🐞 Pomozte nám aplikaci zlepšit")
+    st.link_button(
+        "📝 Formulář pro zpětnou vazbu", 
+        "https://docs.google.com/forms/d/e/1FAIpQLSc7ZJOtTD8iJOwpE6BssYBzpSjL-iMd2Upuy6JSIabW2NMnZQ/viewform?usp=publish-editor", # <-- Sem zkopírujte URL formuláře
+        use_container_width=True,
+        help="Narazili jste na chybu nebo máte nápad na vylepšení? Napište nám!"
+    )
+
+    # --- NOVINKA 2: CHANGELOG (Historie změn) ---
+    st.markdown("### 🆕 Co je nového")
+    with st.expander("Zobrazit historii změn (Changelog)"):
+        try:
+            # Aplikace si sama přečte text ze souboru changelog.md
+            with open("changelog.md", "r", encoding="utf-8") as soubor:
+                st.markdown(soubor.read())
+        except FileNotFoundError:
+            st.info("Changelog je zatím prázdný. První novinky tu budou brzy!")
+    
 
 # --- HLAVNÍ OKNO ---
 # Rozdělíme horní část na dva sloupce: levý (větší) pro text, pravý (menší) pro logo
 col1, col2 = st.columns([4, 1]) 
 
 with col1:
-    st.title("🎓 Expertní Tutor VUT")
+    st.title("🎓 Expertní Tutor VUT - RADIL 1")
     st.markdown("Paar dobrých rad do začátku? Zeptejte se mě na cokoliv ze studijních materiálů. Zvládám státnicové předměty Elektroenergetiky (DEE, EEE, RZB, SUE, TMB a VEE)")
 
 with col2:
@@ -141,35 +161,36 @@ if prompt := st.chat_input("Napište svůj dotaz nebo odpověď sem..."):
             
             # --- DYNAMICKÝ PROMPT ---
             if rezim == "📖 Vysvětlování látky":
-                kontext = f"""Jsi expertní AI tutor pro studenty elektroenergetiky VUT FEKT. Jsi praktickou částí bakalářské práce autora Petr Kocich pod vedením Doktora Paara na téma Chatbot pro výuku elektroenergetiky. Ty jsi ten chatbot a máš za úkol pouze pomáhat stuentům při studiu. Funguješ na principu databáze RAG pod LLM od francouzské firmy Mistral. Dosahuješ tak optimálního poměru cena výkon a ochrany více než 2000 stránek univerzitních skript
+                kontext = f"""Jsi expertní AI tutor pro studenty elektroenergetiky VUT FEKT. Jsi praktickou částí bakalářské práce autora Petr Kocich pod vedením doktora Paara na téma Chatbot pro výuku elektroenergetiky. Ty jsi ten chatbot a máš za úkol pouze pomáhat studentům při studiu. Funguješ na principu databáze RAG pod LLM od francouzské firmy Mistral. Dosahuješ tak optimálního poměru cena výkon a ochrany více než 2000 stránek univerzitních skript. Tvůj název je RADIL-1, tento akronym znamená Real-time Adaptivní Didaktický Interaktivní Lexikon 1. verze.
                 Zde jsou relevantní úryvky z oficiálních skript:
                 {nalezeny_text}
                 
                 TVÁ PRAVIDLA:
             1. Odpovídej POUZE na základě poskytnutých skript. Pokud tam odpověď není, řekni to.
-            2. Vysvětluj látku pedagogicky, jasně a strukturovaně a do hloubky na vysokoškolské úrovni. Vždy uváděj konktrétní hodnoty které jsou pro kompletnost odpovědí podstatné. Nezjednušuj pokud si to uživatel nevyžádá.
-            3. Maximální dodržování přesnosti odpovědí, hlídej si kontext a NIKDY nemíchej dvě různá témata pokud se uživatel doptává dál, Vždy si skontroluj pravdivost návaznosti a nikdy si nevymýšlej. Pokud otázka směřuje k tématu které nemáš ve skriptech zodpovězenou, odpověď nerozvíjej a v odpovědi strikně uveď že se nejedná o znalost ze skript.
+            2. Vysvětluj látku pedagogicky, jasně a strukturovaně a do hloubky na vysokoškolské úrovni. Vždy uváděj konkrétní hodnoty které jsou pro kompletnost odpovědí podstatné. Nezjednodušuj pokud si to uživatel nevyžádá.
+            3. Maximální dodržování přesnosti odpovědí, hlídej si kontext a NIKDY nemíchej dvě různá témata. Pokud se uživatel doptává dál, vždy si zkontroluj pravdivost návaznosti a nikdy si nevymýšlej. Pokud otázka směřuje k tématu které nemáš ve skriptech zodpovězenou, odpověď nerozvíjej a v odpovědi striktně uveď že se nejedná o znalost ze skript.
             4. Pokud odpověď není striktě dána ve skriptech, neodpovídej a zeptej se uživatele co přesně myslí a nabídni mu další pomoc.
             5. Pokud se k tomu téma vybízí, nabídni uživateli několik možností dalších otázek k tématu které mu dokážeš zodpovědět.
             6. STRIKTNÍ FORMÁTOVÁNÍ MATEMATIKY: Všechny rovnice a proměnné musí být v LaTeXu pomocí znaku dolaru.
                - Proměnná v textu: $x$
                - Samostatná rovnice: $$y = x^2$$
                ZAKÁZÁNO je používat závorky jako \( \) nebo \[ \].
-            7. Při dotazu na aktuální verzi uveď 1.0 
+            7. Při dotazu na aktuální verzi či updaty odkaž uživatele na Changelog v levé části obrazovky
             """
 
             else:
                 # REŽIM ZKOUŠENÍ
-                kontext = f"""Jsi přísný zkoušející profesor na VUT.
+                kontext = f"""Jsi zkoušející profesor na VUT.
                 Zde jsou relevantní úryvky z oficiálních skript k tématu:
                 {nalezeny_text}
                 
                 TVÁ PRAVIDLA PRO ZKOUŠENÍ:
-                1. NEDÁVEJ STUDENTOVI PŘÍMOU ODPOVĚĎ!
+                1. Nedávej studentovi přímou odpověď. Pokud student tématu nerozumí, nebuď zlý. Měj učitelský tón ale aktivně studentovi pomáhej v pochopení látky.
                 2. Na základě úryvků vymysli pro studenta 1-2 těžší záludné otázky.
                 3. Pokud student odpovídá, zhodnoť jeho odpověď a polož další otázku.
                 4. Využívej LaTeX pro matematiku.
-                5. STRIKTNÍ FORMÁTOVÁNÍ MATEMATIKY: Všechny rovnice a proměnné musí být v LaTeXu pomocí znaku dolaru.
+                5. NIKDY na konec zprávy nepřidávej vycpávkové fráze jako "Počkám na vaši odpověď", "Počkejte na odpověď" a podobně. Svou zprávu ukonči rovnou položenou otázkou.
+                6. STRIKTNÍ FORMÁTOVÁNÍ MATEMATIKY: Všechny rovnice a proměnné musí být v LaTeXu pomocí znaku dolaru.
                - Proměnná v textu: $x$
                - Samostatná rovnice: $$y = x^2$$
                ZAKÁZÁNO je používat závorky jako \( \) nebo \[ \].
